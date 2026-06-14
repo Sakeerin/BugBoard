@@ -101,3 +101,12 @@ export async function updateIssueStatus(id: string, status: Status) {
 export async function deleteIssue(id: string): Promise<void> {
   await prisma.issue.delete({ where: { id } });
 }
+
+export async function getUsers() {
+  return prisma.user.findMany({
+    select: { id: true, name: true, email: true, role: true },
+    orderBy: { name: "asc" },
+  });
+}
+
+export type UserSummary = Awaited<ReturnType<typeof getUsers>>[number];

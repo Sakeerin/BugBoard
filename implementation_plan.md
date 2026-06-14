@@ -397,10 +397,10 @@ REDIS_URL="redis://localhost:6379"
 - [x] `prisma/seed.ts` (users + issues)
 
 **Phase B — Authentication**
-- [ ] ติดตั้ง `next-auth@5` + `@auth/prisma-adapter` + `bcryptjs`
-- [ ] `auth.ts` (Credentials + role ใน JWT), `[...nextauth]/route.ts`
-- [ ] `middleware.ts`, หน้า `/login`, `UserMenu`, SessionProvider
-- [ ] ใส่ auth guard + ownership ใน API ทุกตัว
+- [x] ติดตั้ง `next-auth@5` + `@auth/prisma-adapter` + `bcryptjs`
+- [x] `auth.ts` (Credentials + role ใน JWT), `[...nextauth]/route.ts`
+- [x] `middleware.ts`, หน้า `/login`, `UserMenu`, SessionProvider
+- [x] ใส่ auth guard + ownership ใน API ทุกตัว
 
 **Phase C — Permanent Delete**
 - [ ] `ConfirmDialog`, ปุ่ม delete ตามสิทธิ์
