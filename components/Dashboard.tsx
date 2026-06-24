@@ -5,9 +5,12 @@ import type { Session } from "next-auth";
 import type { IssueWithRelations, IssueStats, UserSummary } from "@/lib/db";
 import type { Status, Priority } from "@prisma/client";
 import { useIssues } from "@/hooks/useIssues";
+import { useToast } from "@/hooks/useToast";
 import UserMenu from "@/components/UserMenu";
 import IssueCard from "@/components/IssueCard";
 import CreateIssueModal from "@/components/CreateIssueModal";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import ToastStack from "@/components/ToastStack";
 import * as api from "@/lib/api";
 
 const statusOptions: Array<{ label: string; value: Status | "all" }> = [
@@ -25,13 +28,15 @@ const priorityOptions: Array<{ label: string; value: Priority | "all" }> = [
   { label: "Low", value: "low" },
 ];
 
-interface StatCardProps {
+function StatCard({
+  label,
+  value,
+  color,
+}: {
   label: string;
   value: number;
   color: string;
-}
-
-function StatCard({ label, value, color }: StatCardProps) {
+}) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
       <p className="text-sm font-medium text-gray-500">{label}</p>
@@ -47,20 +52,16 @@ interface Props {
   users: UserSummary[];
 }
 
-export default function Dashboard({
-  initialIssues,
-  session,
-  users,
-}: Props) {
+export default function Dashboard({ initialIssues, session, users }: Props) {
   const { issues, stats, mutating, error, createIssue, updateStatus, removeIssue } =
     useIssues(initialIssues);
+  const { toasts, show: showToast, dismiss } = useToast();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<Priority | "all">("all");
   const [showCreate, setShowCreate] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const filtered = issues.filter((issue) => {
     if (statusFilter !== "all" && issue.status !== statusFilter) return false;
@@ -76,15 +77,23 @@ export default function Dashboard({
     return true;
   });
 
-  async function handleDelete(id: string) {
-    setDeleteError(null);
+  async function handleDeleteConfirmed() {
+    if (!deleteTarget) return;
+    const id = deleteTarget;
+    setDeleteTarget(null);
+
     try {
       await api.deleteIssue(id);
       removeIssue(id);
+      showToast("Issue deleted", "success");
     } catch (e) {
-      setDeleteError(e instanceof Error ? e.message : "Delete failed");
-    } finally {
-      setDeleteConfirm(null);
+      const msg = e instanceof Error ? e.message : "Delete failed";
+      showToast(
+        msg.includes("403") || msg.toLowerCase().includes("forbidden")
+          ? "You don't have permission to delete this issue."
+          : msg,
+        "error"
+      );
     }
   }
 
@@ -129,9 +138,7 @@ export default function Dashboard({
         </select>
         <select
           value={priorityFilter}
-          onChange={(e) =>
-            setPriorityFilter(e.target.value as Priority | "all")
-          }
+          onChange={(e) => setPriorityFilter(e.target.value as Priority | "all")}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           {priorityOptions.map((o) => (
@@ -148,15 +155,10 @@ export default function Dashboard({
         </button>
       </div>
 
-      {/* Error banners */}
+      {/* Create error banner */}
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
-        </div>
-      )}
-      {deleteError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {deleteError}
         </div>
       )}
 
@@ -175,7 +177,7 @@ export default function Dashboard({
               issue={issue}
               session={session}
               onUpdateStatus={updateStatus}
-              onDelete={(id) => setDeleteConfirm(id)}
+              onDelete={(id) => setDeleteTarget(id)}
             />
           ))}
         </div>
@@ -191,41 +193,26 @@ export default function Dashboard({
       )}
 
       {/* Delete confirm dialog */}
-      {deleteConfirm && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={(e) => e.target === e.currentTarget && setDeleteConfirm(null)}
-        >
-          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Delete this issue?
-            </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              This action is permanent and cannot be undone.
-            </p>
-            <div className="mt-5 flex justify-end gap-3">
-              <button
-                onClick={() => setDeleteConfirm(null)}
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(deleteConfirm)}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-              >
-                Delete permanently
-              </button>
-            </div>
-          </div>
-        </div>
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete this issue?"
+          description="This action is permanent and cannot be undone."
+          confirmLabel="Delete permanently"
+          destructive
+          onConfirm={handleDeleteConfirmed}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
 
+      {/* Saving indicator */}
       {mutating && (
         <div className="fixed bottom-4 right-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white shadow-lg">
           Saving…
         </div>
       )}
+
+      {/* Toast notifications */}
+      <ToastStack toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 }

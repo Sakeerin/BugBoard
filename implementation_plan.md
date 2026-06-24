@@ -403,9 +403,9 @@ REDIS_URL="redis://localhost:6379"
 - [x] ใส่ auth guard + ownership ใน API ทุกตัว
 
 **Phase C — Permanent Delete**
-- [ ] `ConfirmDialog`, ปุ่ม delete ตามสิทธิ์
-- [ ] `DELETE /api/issues/[id]` + ownership check
-- [ ] `deleteIssue()` ใน api.ts + hook + optimistic
+- [x] `ConfirmDialog`, ปุ่ม delete ตามสิทธิ์
+- [x] `DELETE /api/issues/[id]` + ownership check
+- [x] `deleteIssue()` ใน api.ts + hook + optimistic
 
 **Phase D — Real-time**
 - [ ] `lib/events.ts`, `/api/issues/stream` (SSE)
