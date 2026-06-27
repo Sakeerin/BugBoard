@@ -2,8 +2,10 @@
 
 import { useMemo, useState, useCallback } from "react";
 import type { IssueWithRelations } from "@/lib/db";
+import type { IssueEvent } from "@/lib/events";
 import type { Status } from "@prisma/client";
 import * as api from "@/lib/api";
+import { useIssueStream } from "@/hooks/useIssueStream";
 
 export function useIssues(initialIssues: IssueWithRelations[]) {
   const [issues, setIssues] = useState<IssueWithRelations[]>(initialIssues);
@@ -21,6 +23,23 @@ export function useIssues(initialIssues: IssueWithRelations[]) {
     }),
     [issues]
   );
+
+  const applyEvent = useCallback((e: IssueEvent) => {
+    setIssues((prev) => {
+      switch (e.type) {
+        case "created":
+          // Dedupe: skip if already present (optimistic update from this tab)
+          if (prev.some((i) => i.id === e.issue.id)) return prev;
+          return [e.issue, ...prev];
+        case "updated":
+          return prev.map((i) => (i.id === e.issue.id ? e.issue : i));
+        case "deleted":
+          return prev.filter((i) => i.id !== e.id);
+      }
+    });
+  }, []);
+
+  useIssueStream(applyEvent);
 
   const createIssue = useCallback(
     async (data: api.CreateIssuePayload): Promise<boolean> => {

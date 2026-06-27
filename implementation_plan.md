@@ -408,9 +408,9 @@ REDIS_URL="redis://localhost:6379"
 - [x] `deleteIssue()` ใน api.ts + hook + optimistic
 
 **Phase D — Real-time**
-- [ ] `lib/events.ts`, `/api/issues/stream` (SSE)
-- [ ] emit หลัง create/update/delete
-- [ ] `useIssueStream`, reconcile + dedupe
+- [x] `lib/events.ts`, `/api/issues/stream` (SSE)
+- [x] emit หลัง create/update/delete
+- [x] `useIssueStream`, reconcile + dedupe
 - [ ] (option) Redis pub/sub adapter
 
 **Phase E — Polish & Deploy**

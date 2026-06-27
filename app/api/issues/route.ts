@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getIssues, getIssueStats, createIssue } from "@/lib/db";
 import { createIssueSchema } from "@/lib/validation";
+import { emitIssueEvent } from "@/lib/events";
 import type { Priority, Status } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
@@ -43,5 +44,6 @@ export async function POST(request: NextRequest) {
   }
 
   const issue = await createIssue(result.data, session.user.id);
+  emitIssueEvent({ type: "created", issue });
   return NextResponse.json(issue, { status: 201 });
 }

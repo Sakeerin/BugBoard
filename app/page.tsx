@@ -1,24 +1,15 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { getIssues, getIssueStats, getUsers } from "@/lib/db";
+import { getIssues, getUsers } from "@/lib/db";
 import Dashboard from "@/components/Dashboard";
 
 export default async function HomePage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const [issues, stats, users] = await Promise.all([
-    getIssues(),
-    getIssueStats(),
-    getUsers(),
-  ]);
+  const [issues, users] = await Promise.all([getIssues(), getUsers()]);
 
   return (
-    <Dashboard
-      initialIssues={issues}
-      initialStats={stats}
-      session={session}
-      users={users}
-    />
+    <Dashboard initialIssues={issues} session={session} users={users} />
   );
 }

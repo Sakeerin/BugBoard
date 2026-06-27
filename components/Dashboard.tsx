@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Session } from "next-auth";
-import type { IssueWithRelations, IssueStats, UserSummary } from "@/lib/db";
+import type { IssueWithRelations, UserSummary } from "@/lib/db";
 import type { Status, Priority } from "@prisma/client";
 import { useIssues } from "@/hooks/useIssues";
 import { useToast } from "@/hooks/useToast";
@@ -47,7 +47,6 @@ function StatCard({
 
 interface Props {
   initialIssues: IssueWithRelations[];
-  initialStats: IssueStats;
   session: Session;
   users: UserSummary[];
 }

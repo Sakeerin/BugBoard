@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getIssueById, updateIssueStatus, deleteIssue } from "@/lib/db";
 import { updateStatusSchema } from "@/lib/validation";
+import { emitIssueEvent } from "@/lib/events";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -23,6 +24,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 
   try {
     const issue = await updateIssueStatus(id, result.data.status);
+    emitIssueEvent({ type: "updated", issue });
     return NextResponse.json(issue);
   } catch {
     return NextResponse.json({ error: "Issue not found" }, { status: 404 });
@@ -48,5 +50,6 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
   }
 
   await deleteIssue(id);
+  emitIssueEvent({ type: "deleted", id });
   return NextResponse.json({ ok: true });
 }
