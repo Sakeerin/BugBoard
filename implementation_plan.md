@@ -414,8 +414,8 @@ REDIS_URL="redis://localhost:6379"
 - [ ] (option) Redis pub/sub adapter
 
 **Phase E — Polish & Deploy**
-- [ ] zod validation รวมศูนย์, จัดการ error/permission UI
-- [ ] ทดสอบ multi-tab realtime
+- [x] zod validation รวมศูนย์, จัดการ error/permission UI
+- [x] ทดสอบ multi-tab realtime
 - [ ] ตั้ง MySQL prod + migrate + deploy
 
 ---

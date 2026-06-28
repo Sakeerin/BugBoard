@@ -52,7 +52,7 @@ interface Props {
 }
 
 export default function Dashboard({ initialIssues, session, users }: Props) {
-  const { issues, stats, mutating, error, createIssue, updateStatus, removeIssue } =
+  const { issues, stats, mutating, createIssue, updateStatus, removeIssue } =
     useIssues(initialIssues);
   const { toasts, show: showToast, dismiss } = useToast();
 
@@ -154,13 +154,6 @@ export default function Dashboard({ initialIssues, session, users }: Props) {
         </button>
       </div>
 
-      {/* Create error banner */}
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
       {/* Issue list */}
       {filtered.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center text-sm text-gray-400">
@@ -187,6 +180,7 @@ export default function Dashboard({ initialIssues, session, users }: Props) {
         <CreateIssueModal
           users={users}
           onClose={() => setShowCreate(false)}
+          onCreated={() => { setShowCreate(false); showToast("Issue created", "success"); }}
           onCreate={createIssue}
         />
       )}

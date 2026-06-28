@@ -47,7 +47,11 @@ export function useIssues(initialIssues: IssueWithRelations[]) {
       setError(null);
       try {
         const created = await api.createIssue(data);
-        setIssues((prev) => [created, ...prev]);
+        // SSE fires before the HTTP response returns, so the event may have
+        // already added this issue. Guard to avoid a duplicate.
+        setIssues((prev) =>
+          prev.some((i) => i.id === created.id) ? prev : [created, ...prev]
+        );
         return true;
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to create issue");
