@@ -4,12 +4,34 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  const isProd = process.env.NODE_ENV === "production";
+
+  // Safety guard: this seed wipes all users/issues below, so never let it run
+  // against a production database unless explicitly overridden.
+  if (isProd && process.env.ALLOW_PROD_SEED !== "true") {
+    throw new Error(
+      "Refusing to seed with NODE_ENV=production. Set ALLOW_PROD_SEED=true to override."
+    );
+  }
+
+  // Passwords come from env; a dev fallback keeps local setup frictionless, but
+  // production must supply real secrets (no hardcoded credentials shipped).
+  const adminPassword =
+    process.env.SEED_ADMIN_PASSWORD ?? (isProd ? "" : "admin123");
+  const memberPassword =
+    process.env.SEED_MEMBER_PASSWORD ?? (isProd ? "" : "member123");
+  if (!adminPassword || !memberPassword) {
+    throw new Error(
+      "SEED_ADMIN_PASSWORD and SEED_MEMBER_PASSWORD must be set when seeding in production."
+    );
+  }
+
   // Clean up existing data
   await prisma.issue.deleteMany();
   await prisma.user.deleteMany();
 
-  const adminHash = await bcrypt.hash("admin123", 10);
-  const memberHash = await bcrypt.hash("member123", 10);
+  const adminHash = await bcrypt.hash(adminPassword, 10);
+  const memberHash = await bcrypt.hash(memberPassword, 10);
 
   const [admin, alice, bob] = await Promise.all([
     prisma.user.create({

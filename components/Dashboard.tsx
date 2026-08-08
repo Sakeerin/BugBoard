@@ -76,6 +76,14 @@ export default function Dashboard({ initialIssues, session, users }: Props) {
     return true;
   });
 
+  async function handleUpdateStatus(id: string, status: Status) {
+    try {
+      await updateStatus(id, status);
+    } catch {
+      showToast("Failed to update issue. Please try again.", "error");
+    }
+  }
+
   async function handleDeleteConfirmed() {
     if (!deleteTarget) return;
     const id = deleteTarget;
@@ -168,7 +176,7 @@ export default function Dashboard({ initialIssues, session, users }: Props) {
               key={issue.id}
               issue={issue}
               session={session}
-              onUpdateStatus={updateStatus}
+              onUpdateStatus={handleUpdateStatus}
               onDelete={(id) => setDeleteTarget(id)}
             />
           ))}

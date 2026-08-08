@@ -92,9 +92,11 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-center text-xs text-gray-400">
-          Demo: admin@bugboard.dev / admin123
-        </p>
+        {process.env.NODE_ENV === "development" && (
+          <p className="text-center text-xs text-gray-400">
+            Demo: admin@bugboard.dev / admin123
+          </p>
+        )}
       </div>
     </div>
   );

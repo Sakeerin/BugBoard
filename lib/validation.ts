@@ -12,4 +12,10 @@ export const updateStatusSchema = z.object({
   status: z.nativeEnum(Status),
 });
 
+export const listQuerySchema = z.object({
+  status: z.nativeEnum(Status).optional(),
+  priority: z.nativeEnum(Priority).optional(),
+  search: z.string().max(200).optional(),
+});
+
 export type CreateIssueInput = z.infer<typeof createIssueSchema>;
