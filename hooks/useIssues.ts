@@ -74,7 +74,10 @@ export function useIssues(initialIssues: IssueWithRelations[]) {
     onOpen: resync,
     onFatal: () => {
       // Stream refused (session likely expired) and won't auto-reconnect.
-      // Full-page redirect so middleware re-establishes the auth flow.
+      // A full-page reload is intentional here: it clears all client state and
+      // the dead EventSource, and lets middleware re-run the auth redirect —
+      // a soft router.push() would keep the broken realtime state around.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = "/login";
     },
   });
