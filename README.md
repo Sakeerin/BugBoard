@@ -44,6 +44,7 @@ Demo accounts (dev seed): `admin@bugboard.dev / admin123`, `alice@bugboard.dev /
 |--------|---------|
 | `npm run dev` | Start the dev server |
 | `npm run build` / `npm start` | Production build / serve |
+| `npm run lint` | ESLint (`next/core-web-vitals` + `next/typescript`) |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm test` | Playwright e2e (**reseeds the DB** — see below) |
 
@@ -79,5 +80,4 @@ npm test
 
 ## Known follow-ups
 
-- ESLint is not yet configured (`npm run lint` needs `eslint` + `eslint-config-next` installed).
 - No pagination / fulltext search (loads the full issue list); fine for small teams.
