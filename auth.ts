@@ -18,6 +18,21 @@ declare module "next-auth" {
   }
 }
 
+// Fail fast if a production server is started with an unset or placeholder
+// AUTH_SECRET — a weak secret lets anyone forge session JWTs. Skipped during
+// the build phase (secrets are injected at runtime, not build time).
+const WEAK_AUTH_SECRETS = new Set(["", "dev-secret-change-in-production"]);
+if (
+  process.env.NODE_ENV === "production" &&
+  process.env.NEXT_PHASE !== "phase-production-build" &&
+  WEAK_AUTH_SECRETS.has(process.env.AUTH_SECRET ?? "")
+) {
+  throw new Error(
+    "AUTH_SECRET is unset or still the dev placeholder. Set a strong secret " +
+      "(openssl rand -base64 32) before running in production."
+  );
+}
+
 // How long a JWT stays valid, and how often the jwt callback re-validates the
 // user against the DB so deletes/role-changes propagate without waiting 30 days.
 const SESSION_MAX_AGE = 60 * 60 * 12; // 12 hours

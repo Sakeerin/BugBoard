@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { getIssues, getIssueStats, createIssue } from "@/lib/db";
 import { createIssueSchema, listQuerySchema } from "@/lib/validation";
 import { emitIssueEvent } from "@/lib/events";
-import { errorResponse, zodErrorResponse, prismaErrorResponse } from "@/lib/apiErrors";
+import { zodErrorResponse, prismaErrorResponse } from "@/lib/apiErrors";
+import { requireUser } from "@/lib/authGuard";
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user) {
-    return errorResponse("Unauthorized", 401);
-  }
+  const { session, response } = await requireUser();
+  if (!session) return response;
 
   const { searchParams } = new URL(request.url);
   const parsed = listQuerySchema.safeParse({
@@ -30,10 +28,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user) {
-    return errorResponse("Unauthorized", 401);
-  }
+  const { session, response } = await requireUser();
+  if (!session) return response;
 
   const body = await request.json().catch(() => null);
   const result = createIssueSchema.safeParse(body);
