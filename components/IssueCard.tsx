@@ -24,10 +24,15 @@ const nextStatus: Record<Status, { label: string; value: Status } | null> = {
 };
 
 function formatDate(date: Date | string) {
+  // Pin the timezone so the server (RSC) and client render the same string —
+  // otherwise a viewer whose TZ differs from the server can hit a hydration
+  // mismatch near midnight. `date` is a Date on the server but an ISO string
+  // once serialized over JSON, so normalize through new Date().
   return new Date(date).toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "UTC",
   });
 }
 

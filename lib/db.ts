@@ -68,13 +68,28 @@ export async function getIssueById(id: string) {
 }
 
 export async function getIssueStats(): Promise<IssueStats> {
-  const [open, in_progress, resolved, critical] = await Promise.all([
-    prisma.issue.count({ where: { status: "open" } }),
-    prisma.issue.count({ where: { status: "in_progress" } }),
-    prisma.issue.count({ where: { status: "resolved" } }),
-    prisma.issue.count({ where: { priority: "critical", status: { not: "resolved" } } }),
+  // One grouped query for the per-status counts + one for the "active critical"
+  // metric (which spans statuses), instead of four separate COUNT queries.
+  const [byStatus, critical] = await Promise.all([
+    prisma.issue.groupBy({ by: ["status"], _count: { _all: true } }),
+    prisma.issue.count({
+      where: { priority: "critical", status: { not: "resolved" } },
+    }),
   ]);
-  return { open, in_progress, resolved, critical };
+
+  const counts: Record<Status, number> = {
+    open: 0,
+    in_progress: 0,
+    resolved: 0,
+  };
+  for (const row of byStatus) counts[row.status] = row._count._all;
+
+  return {
+    open: counts.open,
+    in_progress: counts.in_progress,
+    resolved: counts.resolved,
+    critical,
+  };
 }
 
 export async function createIssue(data: CreateIssueInput, reporterId: string) {

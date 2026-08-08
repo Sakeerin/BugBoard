@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
-import { auth } from "@/auth";
 import { getIssueById, updateIssueStatus, deleteIssue } from "@/lib/db";
 import { updateStatusSchema } from "@/lib/validation";
 import { emitIssueEvent } from "@/lib/events";
 import { errorResponse, zodErrorResponse, prismaErrorResponse } from "@/lib/apiErrors";
+import { requireUser } from "@/lib/authGuard";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, { params }: RouteContext) {
-  const session = await auth();
-  if (!session?.user) {
-    return errorResponse("Unauthorized", 401);
-  }
+  const { session, response } = await requireUser();
+  if (!session) return response;
 
   const { id } = await params;
   const body = await request.json().catch(() => null);
@@ -35,10 +33,8 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteContext) {
-  const session = await auth();
-  if (!session?.user) {
-    return errorResponse("Unauthorized", 401);
-  }
+  const { session, response } = await requireUser();
+  if (!session) return response;
 
   const { id } = await params;
   const issue = await getIssueById(id);

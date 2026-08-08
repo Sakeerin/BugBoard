@@ -1,13 +1,11 @@
-import { auth } from "@/auth";
 import { onIssueEvent, type IssueEvent } from "@/lib/events";
+import { requireUser } from "@/lib/authGuard";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const { session, response } = await requireUser();
+  if (!session) return response;
 
   let cleanup: (() => void) | undefined;
 
