@@ -22,5 +22,7 @@ export async function createIssue(page: Page, title: string) {
   await page.fill('input[name="title"]', title);
   await page.fill('textarea[name="description"]', `${title} — description`);
   await page.getByRole("button", { name: "Create Issue" }).click();
-  await expect(page.getByText(title)).toBeVisible();
+  // Match the card heading specifically — the description also contains the
+  // title as a substring, which would make a plain getByText ambiguous.
+  await expect(page.getByRole("heading", { name: title })).toBeVisible();
 }
