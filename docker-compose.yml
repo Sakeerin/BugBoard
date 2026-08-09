@@ -4,13 +4,29 @@ services:
     container_name: bugboard-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: bugboard
-      MYSQL_DATABASE: bugboard
+      # Passwords come from the environment (.env), with dev-only fallbacks so a
+      # fresh clone still comes up. Override all of these for anything shared.
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-bugboard}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-bugboard}
+      # A least-privilege application user (rights only on MYSQL_DATABASE) — the
+      # app connects as this, never as root. Created on first init of an empty
+      # data volume; see README to adopt it on an existing volume.
+      MYSQL_USER: ${MYSQL_USER:-bugboard}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-bugboard}
     ports:
-      - "3306:3306"
+      # Bind to loopback only — do not expose the database to the LAN/VM network.
+      - "127.0.0.1:3306:3306"
     volumes:
       - bugboard-mysql-data:/var/lib/mysql
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      # Unauthenticated liveness ping — the server answers "alive" once it is
+      # accepting connections, so scripts can wait on `condition: service_healthy`.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
 volumes:
   bugboard-mysql-data:
